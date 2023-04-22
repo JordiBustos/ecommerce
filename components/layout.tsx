@@ -10,7 +10,7 @@ export function Layout({ children }) {
         <header>
           <div className="container flex items-center justify-between py-6 mx-auto">
             <Link href="/" className="text-2xl font-semibold no-underline">
-              Next.js for Drupal
+              Demo ecommerce
             </Link>
             <Link
               href="https://next-drupal.org/docs"
@@ -18,7 +18,7 @@ export function Layout({ children }) {
               rel="external"
               className="hover:text-blue-600"
             >
-              Read the docs
+              docs
             </Link>
           </div>
         </header>
