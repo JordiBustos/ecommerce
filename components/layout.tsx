@@ -6,7 +6,7 @@ export function Layout({ children }) {
   return (
     <>
       <PreviewAlert />
-      <div className="max-w-screen-md px-6 mx-auto">
+      <div className="max-w-screen-lg px-6 mx-auto">
         <header>
           <div className="container flex items-center justify-between py-6 mx-auto">
             <Link href="/" className="text-2xl font-semibold no-underline">

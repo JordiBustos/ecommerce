@@ -5,7 +5,7 @@ import { drupal } from "lib/drupal"
 import { Layout } from "components/layout"
 import { NodeItemTeaser } from "components/node--item--teaser"
 
-export default function IndexPage({ nodes }) {
+export default function IndexPage({ nodes, terms }) {
   return (
     <Layout>
       <Head>
@@ -17,16 +17,18 @@ export default function IndexPage({ nodes }) {
       </Head>
       <div>
         <h1 className="mb-10 text-6xl font-black">Products</h1>
+        <div className="flex justify-between gap-10">
         {nodes?.length ? (
           nodes.map((node) => (
             <div key={node.id}>
-              <NodeItemTeaser node={node} />
-              <hr className="my-20" />
+              <NodeItemTeaser node={node} terms={terms} />
+              <hr className="my-10" />
             </div>
           ))
         ) : (
           <p className="py-4">No nodes found</p>
         )}
+        </div>
       </div>
     </Layout>
   )
@@ -45,9 +47,15 @@ export async function getStaticProps() {
     }
   )
 
+  const terms = await drupal.getResourceCollection(
+    "taxonomy_term--tipo_item",
+  )
+
+
   return {
     props: {
       nodes,
+      terms
     },
   }
 }

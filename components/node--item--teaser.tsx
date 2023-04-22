@@ -5,14 +5,16 @@ import { absoluteUrl } from "lib/utils"
 
 interface NodeItemTeaserProps {
   node: DrupalNode
+  terms: any
 }
 
-export function NodeItemTeaser({ node, ...props }: NodeItemTeaserProps) {
+export function NodeItemTeaser({ node, terms, ...props }: NodeItemTeaserProps) {
+  const body = node?.body?.value.replace(/<[^>]*>/g, ''); // Strip HTML tags  
+  console.log(terms)
   return (
     <article {...props}>
-      {node.title}
-      {node.body.value} {" - "}
-      <p>{node.field_tipo.resourceIdObjMeta.drupal_internal__target_id}</p>
+      <h2 className='font-bold text-4xl'>{node.title}</h2>
+      <p>{body}</p>
       {node.field_item_img && (
         <figure>
           <Image
@@ -29,7 +31,10 @@ export function NodeItemTeaser({ node, ...props }: NodeItemTeaserProps) {
           )}
         </figure>
       )}
-      <p>{'$' + node.field_precio}</p>
+      <div className="flex justify-between">
+        <p>{'$' + node.field_precio}</p>
+        <p>{terms[node.field_tipo.resourceIdObjMeta.drupal_internal__target_id-1].name}</p>
+      </div>
       <Link
         href={node.path.alias}
         className="inline-flex items-center px-6 py-2 border border-gray-600 rounded-full hover:bg-gray-100"
