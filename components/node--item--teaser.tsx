@@ -30,7 +30,11 @@ export function NodeItemTeaser({ node, terms, ...props }: NodeItemTeaserProps) {
         </figure>
       )}
       <div className="flex justify-between mt-1">
-        <p className="font-bold">{"$" + node.field_precio}</p>
+        {node.field_stock == 0 ? (
+          <p className="font-bold">Sin stock</p>
+        ) : (
+          <p className="font-bold">{"$" + node.field_precio}</p>
+        )}
         <p>
           {
             terms[

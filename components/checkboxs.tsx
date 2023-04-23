@@ -1,6 +1,6 @@
-export function CheckboxItem({category, key, selectedCategories, handleChange}) {
+export function CheckboxItem({category, selectedCategories, handleChange}) {
   return (
-    <div key={key}>
+    <div>
       <input
         type="checkbox"
         id={category.id}
