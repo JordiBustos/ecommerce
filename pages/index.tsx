@@ -1,30 +1,35 @@
 import Head from "next/head";
 import { drupal } from "lib/drupal";
 import { Layout } from "components/layout";
+import { CheckboxItem } from "components/checkboxs";
 import { NodeItemTeaser } from "components/node--item--teaser";
 import { useState } from "react";
 import { sortByDate } from "lib/utils";
 
-const filters = ["Más nuevo a más viejo", "Más viejo a más nuevo", "Menor precio", "Mayor precio"];
-const sorting = {
+const filters = [
+  "Más nuevo a más viejo",
+  "Más viejo a más nuevo",
+  "Menor precio",
+  "Mayor precio",
+];
+const sortingBasedOnFilters = {
   "Más nuevo a más viejo": (a, b) => sortByDate(b, a),
   "Más viejo a más nuevo": (a, b) => sortByDate(a, b),
   "Menor precio": (a, b) => a.field_precio - b.field_precio,
   "Mayor precio": (a, b) => b.field_precio - a.field_precio,
-}
-
+};
 
 export default function IndexPage({ nodes, terms }) {
-  const [selectedCategories, setSelectedCategories] = useState([])
-  const [selectedFilter, setSelectedFilter] = useState('')
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [selectedFilter, setSelectedFilter] = useState("");
 
-  const handleSelectFilter = event => setSelectedFilter(event.target.value)
-  const handleCategorySelect = event => {
+  const handleSelectFilter = (event) => setSelectedFilter(event.target.value);
+  const handleCategorySelect = (event) => {
     const category = event.target.value;
     event.target.checked
-    ? setSelectedCategories([...selectedCategories, category])
-    : setSelectedCategories(selectedCategories.filter(c => c !== category))
-  }
+      ? setSelectedCategories([...selectedCategories, category])
+      : setSelectedCategories(selectedCategories.filter(c => c !== category));
+  };
 
   return (
     <Layout>
@@ -37,23 +42,22 @@ export default function IndexPage({ nodes, terms }) {
       </Head>
       <div>
         <h1 className="mb-10 text-6xl font-black">Products</h1>
-        <div className="flex justify-between mb-10">
+        <div id="filters" className="flex justify-between mb-10">
           {terms.map((category) => (
-            <div key={category.id}>
-              <input
-                type="checkbox"
-                id={category.id}
-                name={category.name}
-                value={category.name}
-                checked={selectedCategories.includes(category.name)}
-                onChange={handleCategorySelect}
-                className="mr-2"
-              />
-              <label htmlFor={category.id}>{category.name}</label>
-            </div>
+            <CheckboxItem
+              key={category.id}
+              category={category}
+              selectedCategories={selectedCategories}
+              handleChange={handleCategorySelect}
+            />
           ))}
           <div>
-            <select id="categories" value={selectedFilter} onChange={handleSelectFilter} className="p-1">
+            <select
+              id="sorting"
+              value={selectedFilter}
+              onChange={handleSelectFilter}
+              className="p-1"
+            >
               {filters.map((filter) => (
                 <option key={filter} value={filter}>
                   {filter}
@@ -63,11 +67,12 @@ export default function IndexPage({ nodes, terms }) {
           </div>
         </div>
         <div className="flex flex-wrap justify-between gap-1">
-          {nodes?.length ? (   
-            nodes.sort(sorting[selectedFilter]).map((node) =>
+          {nodes?.length ? (
+            nodes.sort(sortingBasedOnFilters[selectedFilter]).map((node) =>
               selectedCategories.includes(
                 terms[
-                  node.field_tipo.resourceIdObjMeta.drupal_internal__target_id - 1
+                  node.field_tipo.resourceIdObjMeta.drupal_internal__target_id -
+                    1
                 ].name
               ) || selectedCategories.length == 0 ? (
                 <div className="basis-1/4 grow-0" key={node.id}>
