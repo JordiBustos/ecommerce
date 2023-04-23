@@ -1,28 +1,26 @@
-import Image from "next/image"
-import Link from "next/link"
-import { DrupalNode } from "next-drupal"
-import { absoluteUrl } from "lib/utils"
+import Image from "next/image";
+import Link from "next/link";
+import { DrupalNode } from "next-drupal";
+import { absoluteUrl } from "lib/utils";
 
 interface NodeItemTeaserProps {
-  node: DrupalNode
-  terms: any
+  node: DrupalNode;
+  terms: any;
 }
 
 export function NodeItemTeaser({ node, terms, ...props }: NodeItemTeaserProps) {
-  const body = node?.body?.value.replace(/<[^>]*>/g, ''); // Strip HTML tags  
-  console.log(terms)
   return (
     <article {...props}>
-      <h2 className='font-bold text-4xl'>{node.title}</h2>
-      <p>{body}</p>
+      <h2 className="font-bold text-4xl mb-2">{node.title}</h2>
       {node.field_item_img && (
         <figure>
           <Image
             src={absoluteUrl(node.field_item_img[0].uri.url)}
-            width={768}
+            width={400}
             height={400}
             alt={node.field_item_img[0].resourceIdObjMeta.alt}
             priority
+            className="rounded shadow-lg"
           />
           {node.field_item_img[0].resourceIdObjMeta.title && (
             <figcaption className="py-2 text-sm text-center text-gray-600">
@@ -31,13 +29,19 @@ export function NodeItemTeaser({ node, terms, ...props }: NodeItemTeaserProps) {
           )}
         </figure>
       )}
-      <div className="flex justify-between">
-        <p>{'$' + node.field_precio}</p>
-        <p>{terms[node.field_tipo.resourceIdObjMeta.drupal_internal__target_id-1].name}</p>
+      <div className="flex justify-between mt-1">
+        <p className="font-bold">{"$" + node.field_precio}</p>
+        <p>
+          {
+            terms[
+              node.field_tipo.resourceIdObjMeta.drupal_internal__target_id - 1
+            ].name
+          }
+        </p>
       </div>
       <Link
         href={node.path.alias}
-        className="inline-flex items-center px-6 py-2 border border-gray-600 rounded-full hover:bg-gray-100"
+        className="inline-flex items-center px-6 py-2 border border-gray-600 rounded-full hover:bg-gray-100 mt-2"
       >
         Ver más
         <svg
@@ -52,7 +56,6 @@ export function NodeItemTeaser({ node, terms, ...props }: NodeItemTeaserProps) {
           <path d="M5 12h14M12 5l7 7-7 7" />
         </svg>
       </Link>
-
     </article>
-  )
+  );
 }
