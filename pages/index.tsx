@@ -4,7 +4,7 @@ import { Layout } from "components/layout";
 import { CheckboxItem } from "components/checkboxs";
 import { NodeItemTeaser } from "components/node--item--teaser";
 import { useState } from "react";
-import { sortByDate } from "lib/utils";
+import { sortingBasedOnOrder } from "lib/utils";
 
 const order = [
   "Más nuevo a más viejo",
@@ -12,20 +12,6 @@ const order = [
   "Menor precio",
   "Mayor precio",
 ];
-const sortingBasedOnOrder = {
-  "Más nuevo a más viejo": (a, b) => sortByDate(b, a),
-  "Más viejo a más nuevo": (a, b) => sortByDate(a, b),
-  "Menor precio": (a, b) => {
-    if (a.field_stock == 0) return 1;
-    if (b.field_stock == 0) return -1;
-    return a.field_precio - b.field_precio;
-  },
-  "Mayor precio": (a, b) => {
-    if (a.field_stock == 0) return 1;
-    if (b.field_stock == 0) return -1;
-    return b.field_precio - a.field_precio;
-  },
-};
 
 export default function IndexPage({ nodes, terms, error }) {
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -57,10 +43,13 @@ export default function IndexPage({ nodes, terms, error }) {
 
   const renderListOfItems = (node) => {
     if (hideOutOfStock && node.field_stock == 0) return null;
-    return selectedCategories.includes(
+
+    const nodeCategory =
       terms[node.field_tipo.resourceIdObjMeta.drupal_internal__target_id - 1]
-        .name
-    ) || selectedCategories.length == 0 ? (
+        .name;
+
+    return selectedCategories.includes(nodeCategory) ||
+      selectedCategories.length == 0 ? (
       <article className="basis-1/4 grow-0" key={node.id}>
         <div>
           <NodeItemTeaser node={node} terms={terms} />
