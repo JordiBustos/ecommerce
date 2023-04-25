@@ -26,46 +26,57 @@ export default function NodePage({ resource }: NodePageProps) {
 }
 
 export async function getStaticPaths(context) {
-  return {
-    paths: await drupal.getStaticPathsFromContext(RESOURCE_TYPES, context),
-    fallback: "blocking",
+  try {
+    const paths = await drupal.getStaticPathsFromContext(RESOURCE_TYPES, context)
+    return {
+      paths: paths,
+      fallback: "blocking",
+    }
+  } catch (error) {
+    return {
+      paths: [],
+      fallback: "blocking",
+    }
   }
 }
 
 export async function getStaticProps(context){
-  const path = await drupal.translatePathFromContext(context)
-  if (!path) return { notFound: true }
-  const type = path.jsonapi.resourceName
+  try {
+    const path = await drupal.translatePathFromContext(context)
+    if (!path) return { notFound: true }
+    const type = path.jsonapi.resourceName
 
-  let params = {}
-  if (type === "node--item") params = { include: "field_item_img" }
+    let params = {}
+    if (type === "node--item") params = { include: "field_item_img" }
 
-  const resource = await drupal.getResourceFromContext<DrupalNode>(
-    path,
-    context,
-    {
-      params,
+    const resource = await drupal.getResourceFromContext<DrupalNode>(
+      path,
+      context,
+      {
+        params,
+      }
+    )
+
+    if (!resource) {
+      throw new Error(`Failed to fetch resource: ${path.jsonapi.individual}`)
     }
-  )
-  // At this point, we know the path exists and it points to a resource.
-  // If we receive an error, it means something went wrong on Drupal.
-  // We throw an error to tell revalidation to skip this for now.
-  // Revalidation can try again on next request.
-  if (!resource) {
-    throw new Error(`Failed to fetch resource: ${path.jsonapi.individual}`)
-  }
-
-  // If we're not in preview mode and the resource is not published,
-  // Return page not found.
-  if (!context.preview && resource?.status === false) {
+  
+    // If we're not in preview mode and the resource is not published,
+    // Return page not found.
+    if (!context.preview && resource?.status === false) {
+      return {
+        notFound: true,
+      }
+    }
+  
+    return {
+      props: {
+        resource,
+      },
+    }
+  } catch (error) {
     return {
       notFound: true,
     }
-  }
-
-  return {
-    props: {
-      resource,
-    },
   }
 }

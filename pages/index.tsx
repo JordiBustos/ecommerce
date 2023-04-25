@@ -6,27 +6,37 @@ import { NodeItemTeaser } from "components/node--item--teaser";
 import { useState } from "react";
 import { sortByDate } from "lib/utils";
 
-const filters = [
+const order = [
   "Más nuevo a más viejo",
   "Más viejo a más nuevo",
   "Menor precio",
   "Mayor precio",
 ];
-const sortingBasedOnFilters = {
+const sortingBasedOnOrder = {
   "Más nuevo a más viejo": (a, b) => sortByDate(b, a),
   "Más viejo a más nuevo": (a, b) => sortByDate(a, b),
-  "Menor precio": (a, b) => a.field_precio - b.field_precio,
-  "Mayor precio": (a, b) => b.field_precio - a.field_precio,
+  "Menor precio": (a, b) => {
+    if (a.field_stock == 0) return 1;
+    if (b.field_stock == 0) return -1;
+    return a.field_precio - b.field_precio;
+  },
+  "Mayor precio": (a, b) => {
+    if (a.field_stock == 0) return 1;
+    if (b.field_stock == 0) return -1;
+    return b.field_precio - a.field_precio;
+  },
 };
 
-export default function IndexPage({ nodes, terms }) {
+export default function IndexPage({ nodes, terms, error }) {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedFilter, setSelectedFilter] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [showOutOfStock, setShowOutOfStock] = useState(false);
 
   const handleSelectFilter = (event) => setSelectedFilter(event.target.value);
   const handleCategorySelect = (event) => {
     const category = event.target.value;
+
     event.target.checked
       ? setSelectedCategories([...selectedCategories, category])
       : setSelectedCategories(selectedCategories.filter((c) => c !== category));
@@ -45,6 +55,21 @@ export default function IndexPage({ nodes, terms }) {
     return nodes;
   };
 
+  const renderListOfItems = (node) => {
+    if (showOutOfStock && node.field_stock == 0) return null;
+    return selectedCategories.includes(
+      terms[node.field_tipo.resourceIdObjMeta.drupal_internal__target_id - 1]
+        .name
+    ) || selectedCategories.length == 0 ? (
+      <article className="basis-1/4 grow-0" key={node.id}>
+        <div>
+          <NodeItemTeaser node={node} terms={terms} />
+          <hr className="my-10" />
+        </div>
+      </article>
+    ) : null;
+  };
+
   return (
     <Layout>
       <Head>
@@ -54,7 +79,7 @@ export default function IndexPage({ nodes, terms }) {
           content="A Next.js site powered by a Drupal backend."
         />
       </Head>
-      <div>
+      <section>
         <div className="flex justify-between">
           <h1 className="w-1/3 mb-10 text-6xl font-black">Productos</h1>
           <input
@@ -81,7 +106,7 @@ export default function IndexPage({ nodes, terms }) {
               onChange={handleSelectFilter}
               className="p-1"
             >
-              {filters.map((filter) => (
+              {order.map((filter) => (
                 <option key={filter} value={filter}>
                   {filter}
                 </option>
@@ -89,47 +114,62 @@ export default function IndexPage({ nodes, terms }) {
             </select>
           </div>
         </div>
-        <div className="flex flex-wrap justify-between gap-1">
+        {terms.length ? (
+          <div className="flex justify-end">
+            <CheckboxItem
+              category={{ id: "Ocultar agotados", name: "Ocultar agotados" }}
+              selectedCategories={[showOutOfStock ? "Ocultar agotados" : ""]}
+              handleChange={() => setShowOutOfStock(!showOutOfStock)}
+            />
+          </div>
+        ) : null}
+      </section>
+      <hr className="my-10" />
+      <section>
+        <div className="flex flex-wrap justify-evenly gap-1">
           {nodes?.length ? (
             filterSearchQuery(nodes)
-              .sort(sortingBasedOnFilters[selectedFilter])
-              .map((node) =>
-                selectedCategories.includes(
-                  terms[
-                    node.field_tipo.resourceIdObjMeta
-                      .drupal_internal__target_id - 1
-                  ].name
-                ) || selectedCategories.length == 0 ? (
-                  <div className="basis-1/4 grow-0" key={node.id}>
-                    <NodeItemTeaser node={node} terms={terms} />
-                    <hr className="my-10" />
-                  </div>
-                ) : null
-              )
+              .sort(sortingBasedOnOrder[selectedFilter])
+              .map(renderListOfItems)
+          ) : error ? (
+            <p className="py-4 font-bold text-2xl">{error}</p>
           ) : (
-            <p className="py-4">No nodes found</p>
+            <p className="py-4 font-bold text-2xl">
+              No se han hallado productos.
+            </p>
           )}
         </div>
-      </div>
+      </section>
     </Layout>
   );
 }
 
 export async function getStaticProps() {
-  const nodes = await drupal.getResourceCollection("node--item", {
-    params: {
-      "filter[status]": 1,
-      sort: "-created",
-      include: "field_item_img",
-    },
-  });
-
-  const terms = await drupal.getResourceCollection("taxonomy_term--tipo_item");
-
-  return {
-    props: {
-      nodes,
-      terms,
-    },
-  };
+  try {
+    const nodes = await drupal.getResourceCollection("node--item", {
+      params: {
+        "filter[status]": 1,
+        sort: "-created",
+        include: "field_item_img",
+      },
+    });
+    const terms = await drupal.getResourceCollection(
+      "taxonomy_term--tipo_item"
+    );
+    return {
+      props: {
+        nodes,
+        terms,
+        error: "",
+      },
+    };
+  } catch (error) {
+    return {
+      props: {
+        nodes: [],
+        terms: [],
+        error: error.message,
+      },
+    };
+  }
 }
