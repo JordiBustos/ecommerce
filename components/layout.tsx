@@ -1,6 +1,7 @@
 import Link from "next/link"
 
 import { PreviewAlert } from "components/preview-alert"
+import Image from "next/image"
 
 export function Layout({ children }) {
   return (
@@ -10,15 +11,15 @@ export function Layout({ children }) {
         <header>
           <div className="container flex items-center justify-between py-6 mx-auto">
             <Link href="/" className="text-2xl font-semibold no-underline">
-              Demo ecommerce
+              Adidas Store
             </Link>
             <Link
-              href="https://next-drupal.org/docs"
+              href="https://www.adidas.com.ar/"
               target="_blank"
               rel="external"
               className="hover:text-blue-600"
             >
-              docs
+             <Image src="adidas.svg" width={100} height={100} alt="logo" />
             </Link>
           </div>
         </header>
