@@ -31,7 +31,7 @@ export default function IndexPage({ nodes, terms, error }) {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedFilter, setSelectedFilter] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [showOutOfStock, setShowOutOfStock] = useState(false);
+  const [hideOutOfStock, sethideOutOfStock] = useState(false);
 
   const handleSelectFilter = (event) => setSelectedFilter(event.target.value);
   const handleCategorySelect = (event) => {
@@ -56,7 +56,7 @@ export default function IndexPage({ nodes, terms, error }) {
   };
 
   const renderListOfItems = (node) => {
-    if (showOutOfStock && node.field_stock == 0) return null;
+    if (hideOutOfStock && node.field_stock == 0) return null;
     return selectedCategories.includes(
       terms[node.field_tipo.resourceIdObjMeta.drupal_internal__target_id - 1]
         .name
@@ -118,8 +118,8 @@ export default function IndexPage({ nodes, terms, error }) {
           <div className="flex justify-end">
             <CheckboxItem
               category={{ id: "Ocultar agotados", name: "Ocultar agotados" }}
-              selectedCategories={[showOutOfStock ? "Ocultar agotados" : ""]}
-              handleChange={() => setShowOutOfStock(!showOutOfStock)}
+              selectedCategories={[hideOutOfStock ? "Ocultar agotados" : ""]}
+              handleChange={() => sethideOutOfStock(!hideOutOfStock)}
             />
           </div>
         ) : null}
