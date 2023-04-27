@@ -10,7 +10,7 @@ interface NodeItemTeaserProps {
 
 export function NodeItemTeaser({ node, terms, ...props }: NodeItemTeaserProps) {
   return (
-    <article {...props}>
+    <article className="basis-1/4 grow-0" {...props}>
       <h2 className="font-bold text-4xl mb-2">{node.title}</h2>
       {node.field_item_img && (
         <figure>
@@ -60,6 +60,7 @@ export function NodeItemTeaser({ node, terms, ...props }: NodeItemTeaserProps) {
           <path d="M5 12h14M12 5l7 7-7 7" />
         </svg>
       </Link>
+      <hr className="my-10" />
     </article>
   );
 }

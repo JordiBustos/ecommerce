@@ -3,8 +3,10 @@ import { drupal } from "lib/drupal";
 import { Layout } from "components/layout";
 import { CheckboxItem } from "components/checkboxs";
 import { NodeItemTeaser } from "components/node--item--teaser";
-import { useState } from "react";
+import { Key, SetStateAction, useEffect, useState } from "react";
 import { sortingBasedOnOrder } from "lib/utils";
+import { useDebounce } from "hooks/useDebounce";
+import { DrupalNode } from "next-drupal";
 
 const order = [
   "Más nuevo a más viejo",
@@ -15,12 +17,30 @@ const order = [
 
 export default function IndexPage({ nodes, terms, error }) {
   const [selectedCategories, setSelectedCategories] = useState([]);
+  const [renderNodes, setRenderNodes] = useState(nodes);
   const [selectedFilter, setSelectedFilter] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearch = useDebounce(searchQuery, 500);
   const [hideOutOfStock, sethideOutOfStock] = useState(false);
 
-  const handleSelectFilter = (event) => setSelectedFilter(event.target.value);
-  const handleCategorySelect = (event) => {
+  useEffect(() => {
+    filterSearchQuery(nodes);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch]);
+
+  const filterSearchQuery = (nodes: any[]) => {
+    if (debouncedSearch !== "") {
+      let new_nodes = nodes.filter((node: DrupalNode) =>
+        node.title.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setRenderNodes(new_nodes);
+    } else {
+      setRenderNodes(nodes);
+    }
+  };
+
+  const handleSelectFilter = (event: { target: { value: SetStateAction<string>; }; }) => setSelectedFilter(event.target.value);
+  const handleCategorySelect = (event: { target: { value: any; checked: any; }; }) => {
     const category = event.target.value;
 
     event.target.checked
@@ -28,20 +48,7 @@ export default function IndexPage({ nodes, terms, error }) {
       : setSelectedCategories(selectedCategories.filter((c) => c !== category));
   };
 
-  const handleSearchInputChange = (event) => {
-    setSearchQuery(event.target.value);
-  };
-
-  const filterSearchQuery = (nodes) => {
-    if (searchQuery !== "") {
-      nodes = nodes.filter((node) =>
-        node.title.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-    return nodes;
-  };
-
-  const renderListOfItems = (node) => {
+  const renderListOfItems = (node: DrupalNode) => {
     if (hideOutOfStock && node.field_stock == 0) return null;
 
     const nodeCategory =
@@ -50,12 +57,7 @@ export default function IndexPage({ nodes, terms, error }) {
 
     return selectedCategories.includes(nodeCategory) ||
       selectedCategories.length == 0 ? (
-      <article className="basis-1/4 grow-0" key={node.id}>
-        <div>
-          <NodeItemTeaser node={node} terms={terms} />
-          <hr className="my-10" />
-        </div>
-      </article>
+      <NodeItemTeaser key={node.id} node={node} terms={terms} />
     ) : null;
   };
 
@@ -75,12 +77,12 @@ export default function IndexPage({ nodes, terms, error }) {
             type="text"
             placeholder="Buscar"
             value={searchQuery}
-            onChange={handleSearchInputChange}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="p-1 mb-10 w-2/3 rounded shadow-md transition duration-300 ease-in-out hover:shadow-xl hover:border-transparent hover:ring-2 hover:ring-purple-600"
           />
         </div>
         <div id="filters" className="flex justify-between mb-10">
-          {terms.map((category) => (
+          {terms.map((category: { id: Key; }) => (
             <CheckboxItem
               key={category.id}
               category={category}
@@ -116,8 +118,8 @@ export default function IndexPage({ nodes, terms, error }) {
       <hr className="my-10" />
       <section>
         <div className="flex flex-wrap justify-evenly gap-1">
-          {nodes?.length ? (
-            filterSearchQuery(nodes)
+          {renderNodes?.length ? (
+            renderNodes
               .sort(sortingBasedOnOrder[selectedFilter])
               .map(renderListOfItems)
           ) : error ? (
